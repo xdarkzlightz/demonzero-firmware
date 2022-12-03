@@ -3,6 +3,7 @@
 #include <stdbool.h>
 
 #include "infrared_remote_button.h"
+#include "infrared_settings.h"
 
 typedef struct InfraredRemote InfraredRemote;
 
@@ -27,3 +28,7 @@ bool infrared_remote_delete_button(InfraredRemote* remote, size_t index);
 bool infrared_remote_store(InfraredRemote* remote);
 bool infrared_remote_load(InfraredRemote* remote, FuriString* path);
 bool infrared_remote_remove(InfraredRemote* remote);
+
+bool infrared_remote_pin_state_alloc(InfraredRemote* remote, InfraredSettings settings);
+bool infrared_remote_unpin(InfraredRemote* remote, InfraredSettings* settings);
+bool infrared_remote_pin(InfraredRemote* remote, InfraredSettings* settings);

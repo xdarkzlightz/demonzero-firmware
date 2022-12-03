@@ -140,6 +140,12 @@ static Infrared* infrared_alloc() {
     infrared->received_signal = infrared_signal_alloc();
     infrared->brute_force = infrared_brute_force_alloc();
 
+    infrared->variable_item_list = variable_item_list_alloc();
+    view_dispatcher_add_view(
+        infrared->view_dispatcher,
+        InfraredViewVarItemList,
+        variable_item_list_get_view(infrared->variable_item_list));
+
     infrared->submenu = submenu_alloc();
     view_dispatcher_add_view(
         view_dispatcher, InfraredViewSubmenu, submenu_get_view(infrared->submenu));
@@ -191,6 +197,9 @@ static void infrared_free(Infrared* infrared) {
 
     view_dispatcher_remove_view(view_dispatcher, InfraredViewSubmenu);
     submenu_free(infrared->submenu);
+
+    view_dispatcher_remove_view(view_dispatcher, InfraredViewVarItemList);
+    variable_item_list_free(infrared->variable_item_list);
 
     view_dispatcher_remove_view(view_dispatcher, InfraredViewTextInput);
     text_input_free(infrared->text_input);
@@ -428,6 +437,12 @@ int32_t infrared_app(void* p) {
 
     bool is_remote_loaded = false;
     bool is_rpc_mode = false;
+
+    bool loaded = INFRARED_SETTINGS_LOAD(&infrared->settings);
+    if(!loaded) {
+        memset(&infrared->settings, 0, sizeof(infrared->settings));
+        INFRARED_SETTINGS_SAVE(&infrared->settings);
+    }
 
     if(p && strlen(p)) {
         uint32_t rpc_ctx = 0;

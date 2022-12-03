@@ -8,6 +8,10 @@
 #include <storage/storage.h>
 #include <core/common_defines.h>
 
+#include "infrared_settings.h"
+#include "infrared.h"
+#include "infrared_i.h"
+
 #define TAG "InfraredRemote"
 
 ARRAY_DEF(InfraredButtonArray, InfraredRemoteButton*, M_PTR_OPLIST);
@@ -16,6 +20,8 @@ struct InfraredRemote {
     InfraredButtonArray_t buttons;
     FuriString* name;
     FuriString* path;
+    bool is_pinned;
+    size_t index;
 };
 
 static void infrared_remote_clear_buttons(InfraredRemote* remote) {
@@ -63,6 +69,20 @@ void infrared_remote_set_path(InfraredRemote* remote, const char* path) {
 
 const char* infrared_remote_get_path(InfraredRemote* remote) {
     return furi_string_get_cstr(remote->path);
+}
+
+bool infrared_remote_pin_state_alloc(InfraredRemote* remote, InfraredSettings settings) {
+    for(int i = 0; i < MAX_SAVED_REMOTES - 1; i++) {
+        if(strcmp(furi_string_get_cstr(remote->name), settings.saved_remotes[i].remote_name) ==
+           0) {
+            remote->index = i;
+            remote->is_pinned = true;
+            return true;
+        }
+    }
+    remote->is_pinned = false;
+    remote->index = 0;
+    return false;
 }
 
 size_t infrared_remote_get_button_count(InfraredRemote* remote) {
@@ -185,4 +205,30 @@ bool infrared_remote_remove(InfraredRemote* remote) {
 
     furi_record_close(RECORD_STORAGE);
     return (status == FSE_OK || status == FSE_NOT_EXIST);
+}
+
+bool infrared_remote_pin(InfraredRemote* remote, InfraredSettings* settings) {
+    for(int i = 0; i < MAX_SAVED_REMOTES - 1; i++) {
+        if(strcmp(settings->saved_remotes[i].remote_name, "") == 0) {
+            strcpy(settings->saved_remotes[i].remote_name, furi_string_get_cstr(remote->name));
+            strcpy(settings->saved_remotes[i].file_path, furi_string_get_cstr(remote->path));
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool infrared_remote_unpin(InfraredRemote* remote, InfraredSettings* settings) {
+    memset(
+        &settings->saved_remotes[remote->index].remote_name[0],
+        0,
+        sizeof(settings->saved_remotes[remote->index].remote_name));
+    memset(
+        &settings->saved_remotes[remote->index].file_path[0],
+        0,
+        sizeof(settings->saved_remotes[remote->index].file_path));
+
+    return true;
 }

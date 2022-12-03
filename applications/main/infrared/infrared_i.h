@@ -14,6 +14,7 @@
 #include <gui/modules/text_input.h>
 #include <gui/modules/button_menu.h>
 #include <gui/modules/button_panel.h>
+#include <gui/modules/variable_item_list.h>
 
 #include <storage/storage.h>
 #include <dialogs/dialogs.h>
@@ -26,6 +27,7 @@
 #include "infrared_remote.h"
 #include "infrared_brute_force.h"
 #include "infrared_custom_event.h"
+#include "infrared_settings.h"
 
 #include "scenes/infrared_scene.h"
 #include "views/infrared_progress_view.h"
@@ -72,6 +74,8 @@ typedef struct {
 } InfraredAppState;
 
 struct Infrared {
+    InfraredSettings settings;
+
     SceneManager* scene_manager;
     ViewDispatcher* view_dispatcher;
 
@@ -84,6 +88,7 @@ struct Infrared {
     InfraredSignal* received_signal;
     InfraredBruteForce* brute_force;
 
+    VariableItemList* variable_item_list;
     Submenu* submenu;
     TextInput* text_input;
     DialogEx* dialog_ex;
@@ -105,6 +110,7 @@ struct Infrared {
 };
 
 typedef enum {
+    InfraredViewVarItemList,
     InfraredViewSubmenu,
     InfraredViewTextInput,
     InfraredViewDialogEx,

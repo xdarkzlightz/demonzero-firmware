@@ -1,6 +1,7 @@
 #include "../infrared_i.h"
 
 enum SubmenuIndex {
+    SubmenuIndexPinnedRemotes,
     SubmenuIndexUniversalRemotes,
     SubmenuIndexLearnNewRemote,
     SubmenuIndexSavedRemotes,
@@ -17,6 +18,12 @@ void infrared_scene_start_on_enter(void* context) {
     Submenu* submenu = infrared->submenu;
     SceneManager* scene_manager = infrared->scene_manager;
 
+    submenu_add_item(
+        submenu,
+        "Pinned Remotes",
+        SubmenuIndexPinnedRemotes,
+        infrared_scene_start_submenu_callback,
+        infrared);
     submenu_add_item(
         submenu,
         "Universal Remotes",
@@ -58,7 +65,10 @@ bool infrared_scene_start_on_event(void* context, SceneManagerEvent event) {
     if(event.type == SceneManagerEventTypeCustom) {
         const uint32_t submenu_index = event.event;
         scene_manager_set_scene_state(scene_manager, InfraredSceneStart, submenu_index);
-        if(submenu_index == SubmenuIndexUniversalRemotes) {
+        if(submenu_index == SubmenuIndexPinnedRemotes) {
+            scene_manager_next_scene(scene_manager, InfraredSceneRemotePinned);
+            consumed = true;
+        } else if(submenu_index == SubmenuIndexUniversalRemotes) {
             scene_manager_next_scene(scene_manager, InfraredSceneUniversal);
             consumed = true;
         } else if(submenu_index == SubmenuIndexLearnNewRemote) {
@@ -81,4 +91,5 @@ bool infrared_scene_start_on_event(void* context, SceneManagerEvent event) {
 void infrared_scene_start_on_exit(void* context) {
     Infrared* infrared = context;
     submenu_reset(infrared->submenu);
+    INFRARED_SETTINGS_SAVE(&infrared->settings);
 }
